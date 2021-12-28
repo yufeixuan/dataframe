@@ -5,6 +5,8 @@ import io.github.yufeixuan.impl.Combining;
 import io.github.yufeixuan.impl.Sorting;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Author: Luoxuan
@@ -35,7 +37,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 获取指定列对应的索引
      * @param name
-     * @return
      */
     public Integer getColIndex(final Object name) {
         return this.index.get(name);
@@ -43,7 +44,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
 
     /**
      * 获取列数量
-     * @return
      */
     public Integer getIndexSize() {
         return index.size();
@@ -74,7 +74,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
 
     /**
      * 获取所有列list
-     * @return
      */
     public LinkedList<Object> getColumns() {
         return columns;
@@ -95,7 +94,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 添加一行数据
      * @param row
-     * @return
      */
     public DataFrame append(List<? extends V> row) {
         int len = data.length();
@@ -109,7 +107,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
 
     /**
      * 返回数据的长度
-     * @return
      */
     public int length() {
         return data.length();
@@ -118,7 +115,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 返回第row行的所有数据
      * @param row 行数，从0开始
-     * @return
      */
     public List<V> row(final Integer row) {
         return data.row(row);
@@ -127,7 +123,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 返回第col列的所有数据
      * @param col 列数，从0开始
-     * @return
      */
     public List<V> column(final Integer col) {
         return data.column(col);
@@ -137,7 +132,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * 获取第row行第col列的数据
      * @param row 行数，从0开始
      * @param col 列数，从0开始
-     * @return
      */
     public V get(int row, int col) {
         return data.get(col, row);
@@ -147,10 +141,13 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * 获取第row行列为col的数据
      * @param row 行数，从0开始
      * @param col 列名
-     * @return
      */
     public V get(int row, String col) {
-        return data.get(getColIndex(col), row);
+        Integer colIndex = getColIndex(col);
+        if (colIndex == null) {
+            throw new IllegalArgumentException("列名不存在:" + col);
+        }
+        return data.get(colIndex, row);
     }
 
     /**
@@ -164,10 +161,23 @@ public class DataFrame<V> implements Iterable<List<V>> {
     }
 
     /**
+     * 设置指定行指定列的值
+     * @param row 指定行索引
+     * @param colName 指定列列名
+     * @param val 设定值
+     */
+    public void set(int row, String colName, V val) {
+        Integer colIndex = getColIndex(colName);
+        if (colIndex == null) {
+            throw new IllegalArgumentException("列名不存在:" + colName);
+        }
+        data.set(val, colIndex, row);
+    }
+
+    /**
      * 重命名列名
      * @param old 源列名
      * @param name 新列名
-     * @return
      */
     public DataFrame<V> rename(final Object old, final Object name) {
         Integer colIndex = getColIndex(old);
@@ -188,7 +198,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 批量重命名列名
      * @param cols
-     * @return
      */
     public DataFrame<V> rename(Map<Object, Object> cols) {
         for (Map.Entry<Object, Object> col : cols.entrySet() ) {
@@ -201,7 +210,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 删除指定列
      * @param cols
-     * @return
      */
     public DataFrame<V> drop(final Integer ... cols) {
         for (final int col : cols) {
@@ -216,7 +224,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 添加一列
      * @param col 列名
-     * @return
      */
     public DataFrame<V> add(String col) {
         columns.add(col);
@@ -229,13 +236,12 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 填充map的key为列名，map的值作为填充的值
      * @param map
-     * @return
      */
     public DataFrame<V> fillNaMap(Map<Object, Object> map) {
         for (Map.Entry<Object, Object> m : map.entrySet() ) {
             Integer colIndex = getColIndex(m.getKey());
             if (colIndex == null) {
-                throw new IllegalArgumentException("列名不存在");
+                throw new IllegalArgumentException("列名不存在" + m.getKey());
             }
 
             int len = length();
@@ -254,12 +260,11 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * 用户val填充col为null的列
      * @param col 列数
      * @param val 值
-     * @return
      */
     public DataFrame<V> fillNa(String col, V val) {
         Integer colIndex = getColIndex(col);
         if (colIndex == null) {
-            throw new IllegalArgumentException("列名不存在");
+            throw new IllegalArgumentException("列名不存在" + col);
         }
         int len = length();
 
@@ -277,7 +282,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * @param sourceCol 源列
      * @param targetCol 目标列
      * @param isNa 源列是否为null
-     * @return
      */
     public DataFrame<V> copy(String sourceCol, String targetCol, boolean isNa) {
         Integer sourceColIndex = getColIndex(sourceCol);
@@ -304,15 +308,49 @@ public class DataFrame<V> implements Iterable<List<V>> {
     }
 
     /**
-     * 给指定列进行pow
+     * 给指定列进行pow,返回指定列的Double值
      * @param num 底数
      * @param col 指数所在列名
-     * @return
      */
     public DataFrame<V> pow(Double num, Object col) {
         Integer colIndex = getColIndex(col);
         if (colIndex == null) {
-            throw new IllegalArgumentException("列名不存在");
+            throw new IllegalArgumentException("列名不存在" + col);
+        }
+        int len = length();
+        for (int i = 0; i < len; i++) {
+            V colVal =  get(i, colIndex);
+            Double val = 1.00000000d;
+            if (colVal != null) {
+                val = Math.pow(num, Double.valueOf(String.valueOf(colVal)));
+            }
+            set(i, colIndex, (V) val);
+        }
+        return this;
+    }
+
+    /**
+     * 给指定列进行pow,返回指定列的Double值
+     * @param num 底数
+     * @param cols 指数所在列名
+     */
+    public DataFrame<V> pow(Double num, List cols) {
+        for (Object col : cols) {
+            pow(num, col);
+        }
+
+        return this;
+    }
+
+    /**
+     * 给指定列进行pow,返回指定列的int值
+     * @param num 底数
+     * @param col 指数所在列名
+     */
+    public DataFrame<V> powInt(Double num, Object col) {
+        Integer colIndex = getColIndex(col);
+        if (colIndex == null) {
+            throw new IllegalArgumentException("列名不存在" + col);
         }
         int len = length();
         for (int i = 0; i < len; i++) {
@@ -326,10 +364,31 @@ public class DataFrame<V> implements Iterable<List<V>> {
         return this;
     }
 
+    /**
+     * 给指定列进行pow,返回指定列的int值
+     * @param num 底数
+     * @param cols 指数所在列名
+     */
+    public DataFrame<V> powInt(Double num, List cols) {
+        for (Object col : cols) {
+            powInt(num, col);
+        }
+
+        return this;
+    }
+
+
+    /**
+     * 判断某行的指定列colList的null值是否大于condition，并改变改行col列的值为col+change
+     * @param colList 指定列
+     * @param col 要改变的列
+     * @param condition 判断null数量条件
+     * @param change 改变值
+     */
     public DataFrame<V> changeOnNaCondition(List colList, String col, int condition, double change) {
         Integer colIndex = getColIndex(col);
         if (colIndex == null) {
-            throw new IllegalArgumentException("列名不存在");
+            throw new IllegalArgumentException("列名不存在" + col);
         }
         int len = length();
         for (int i = 0; i < len; i++) {
@@ -353,8 +412,7 @@ public class DataFrame<V> implements Iterable<List<V>> {
 
     /**
      * 获取指定列最大值
-     * @param col
-     * @return
+     * @param col 指定列
      */
     public V max(V col) {
         V max = getVal(col, -1);
@@ -363,8 +421,7 @@ public class DataFrame<V> implements Iterable<List<V>> {
 
     /**
      * 获取指定列最小值
-     * @param col
-     * @return
+     * @param col 指定列
      */
     public V min(V col) {
         V min = getVal(col, 1);
@@ -374,32 +431,34 @@ public class DataFrame<V> implements Iterable<List<V>> {
     private V getVal(V col, final int sort) {
         Integer colIndex = getColIndex(col);
         if (colIndex == null) {
-            throw new IllegalArgumentException("列名不存在");
+            throw new IllegalArgumentException("列名不存在" + col);
         }
         List<V> columnList = column(colIndex);
 
-        if (columnList == null) {
+        List<V> collect = columnList.stream().filter(x -> x != null).collect(Collectors.toList());
+
+        if (collect == null) {
             return null;
         }
 
-        Collections.sort(columnList, new Comparator<V> () {
+        Collections.sort(collect, new Comparator<V> () {
             @Override
             public int compare(V o1, V o2) {
                 int result = 0;
                 Comparable v1 = Comparable.class.cast(o1);
                 Comparable v2 = Comparable.class.cast(o2);
+
                 result = v1.compareTo(v2) * sort;
                 return result;
             }
         });
 
-        return columnList.get(0);
+        return collect.get(0);
     }
 
     /**
      * 删除指定列
-     * @param cols
-     * @return
+     * @param cols 指定列
      */
     public DataFrame<V> drop(final Object ... cols) {
         return drop(indices(cols));
@@ -443,10 +502,9 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * data frame with the argument using the specified join type and
      * the column values as the join key.
      *
-     * @param other the other data frame
-     * @param join the join type
-     * @param cols the indices of the columns to use as the join key
-     * @return the result of the join operation as a new data frame
+     * other the other data frame
+     * join the join type
+     * cols the indices of the columns to use as the join key
      */
     public final DataFrame<V> joinOn(final DataFrame<V> other, final JoinType join, final Integer ... cols) {
         return Combining.joinOn(this, other, join, cols);
@@ -457,10 +515,10 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * data frame with the argument using the specified join type and
      * the column values as the join key.
      *
-     * @param right the other data frame
-     * @param join the join type
-     * @param colKey the names of the columns to use as the join key
-     * @return the result of the join operation as a new data frame
+     * right the other data frame
+     * join the join type
+     * colKey the names of the columns to use as the join key
+     * the result of the join operation as a new data frame
      */
     public final DataFrame<V> joinOn(final DataFrame<V> right, final JoinType join, final Object ... colKey) {
         return joinOn(right, join, indices(colKey));
@@ -469,8 +527,7 @@ public class DataFrame<V> implements Iterable<List<V>> {
 
     /**
      * 排序
-     * @param cols
-     * @return
+     * @param cols 指定列
      */
     public DataFrame<V> sortBy(final Object ... cols) {
         final Map<Integer, SortDirection> sortCols = new LinkedHashMap<>();
@@ -501,7 +558,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 对指定列去重
      * @param cols 列名
-     * @return
      */
     public DataFrame<V> unique(final Object ... cols) {
         return unique(indices(cols));
@@ -510,7 +566,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
     /**
      * 对指定列去重
      * @param cols 列索引
-     * @return
      */
     public DataFrame<V> unique(final Integer ... cols) {
         final DataFrame<V> unique = new DataFrame<V>(getColumns());

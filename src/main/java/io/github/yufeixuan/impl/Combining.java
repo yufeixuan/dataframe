@@ -32,16 +32,14 @@ public class Combining {
         final Map<Object, List<V>> rightMap = new LinkedHashMap<>();
 
         for (final List<V> row : left) {
-            final Object name = leftIt.next();
-            final Object key = on == null ? name : on.apply(row);
+            final Object key = on.apply(row);
             if (leftMap.put(key, row) != null) {
                 throw new IllegalArgumentException("generated key is not unique: " + key);
             }
         }
 
         for (final List<V> row : right) {
-            final Object name = rightIt.next();
-            final Object key = on == null ? name : on.apply(row);
+            final Object key = on.apply(row);
             if (rightMap.put(key, row) != null) {
                 throw new IllegalArgumentException("generated key is not unique: " + key);
             }

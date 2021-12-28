@@ -6,12 +6,12 @@
 
   <groupId>io.github.yufeixuan</groupId>
   <artifactId>DataFrame</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.6</version>
   <packaging>jar</packaging>
 
   <name>DataFrame</name>
   <url>https://github.com/yufeixuan/dataframe</url>
-  <description>java版dataframe数据处理框架</description>
+  <description>java版dataframe数据处理框架，修复N多bug</description>
 
   <licenses>
     <license>
