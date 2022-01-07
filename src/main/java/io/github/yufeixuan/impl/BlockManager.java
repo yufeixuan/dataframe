@@ -49,6 +49,12 @@ public class BlockManager<V> {
         return rows;
     }
 
+    public void del(final int row) {
+        for (int i = 0; i < blocks.size(); i++) {
+            blocks.get(i).remove(row);
+        }
+    }
+
 
     public void add(final List<V> col) {
         final int len = length();

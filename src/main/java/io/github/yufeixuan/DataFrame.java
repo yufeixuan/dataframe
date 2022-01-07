@@ -222,6 +222,18 @@ public class DataFrame<V> implements Iterable<List<V>> {
     }
 
     /**
+     * 删除指定行
+     * @param rows 行索引
+     */
+    public DataFrame<V> dropRow(List<Integer> rows) {
+        for (final int row : rows) {
+            data.del(row);
+        }
+        return this;
+    }
+
+
+    /**
      * 添加一列
      * @param col 列名
      */
