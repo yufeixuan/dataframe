@@ -6,7 +6,7 @@
 
   <groupId>io.github.yufeixuan</groupId>
   <artifactId>DataFrame</artifactId>
-  <version>1.0.7</version>
+  <version>1.0.9</version>
   <packaging>jar</packaging>
 
   <name>DataFrame</name>
@@ -14,6 +14,10 @@
   <description>
     1. java版dataframe数据处理框架，修复N多bug
     2. 增加删除指定行dropRow
+    3. 当dataframe对象为空值(即创建对象后没有通过append赋值)，删除指定列时会报错，已修复
+    4. 修复drop的时候列名不存在的问题
+    6. 优化joinOn
+    7. 优化add方法
   </description>
 
   <licenses>

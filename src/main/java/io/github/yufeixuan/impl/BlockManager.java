@@ -25,6 +25,7 @@ public class BlockManager<V> {
             add(new ArrayList<V>(rows));
         }
 
+        // 给每列添加null到rows行的数量
         for (final List<V> block : blocks) {
             for (int r = block.size(); r < rows; r++) {
                 block.add(null);
@@ -80,6 +81,8 @@ public class BlockManager<V> {
     }
 
     public void drop(int colIndex) {
-        blocks.remove(colIndex);
+        if (colIndex <= blocks.size()) {
+            blocks.remove(colIndex);
+        }
     }
 }

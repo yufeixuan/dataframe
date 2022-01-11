@@ -25,21 +25,25 @@ import io.github.yufeixuan.DataFrame.KeyFunction;
 import java.util.*;
 
 public class Combining {
-    public static <V> DataFrame<V> join(final DataFrame<V> left, final DataFrame<V> right, final JoinType how, final KeyFunction<V> on) {
-        final Iterator<Object> leftIt = left.getColumns().iterator();
-        final Iterator<Object> rightIt = right.getColumns().iterator();
+    public static <V> DataFrame<V> join(final DataFrame<V> left, final DataFrame<V> right, final JoinType how, final String joinKey, final KeyFunction<V> on) {
+        final Integer lColIndex = left.getColIndex(joinKey);
+        final Integer rColIndex = right.getColIndex(joinKey);
+
+        if (lColIndex == null || rColIndex == null) {
+            throw new IllegalArgumentException("joinKey不存在: " + joinKey);
+        }
         final Map<Object, List<V>> leftMap = new LinkedHashMap<>();
         final Map<Object, List<V>> rightMap = new LinkedHashMap<>();
 
         for (final List<V> row : left) {
-            final Object key = on.apply(row);
+            final Object key = on.apply(row, 0);
             if (leftMap.put(key, row) != null) {
                 throw new IllegalArgumentException("generated key is not unique: " + key);
             }
         }
 
         for (final List<V> row : right) {
-            final Object key = on.apply(row);
+            final Object key = on.apply(row, 1);
             if (rightMap.put(key, row) != null) {
                 throw new IllegalArgumentException("generated key is not unique: " + key);
             }
@@ -80,23 +84,37 @@ public class Combining {
                 if (row == null) {
                     final List<V> tmp = new ArrayList<>(Collections.<V>nCopies(
                         how != JoinType.RIGHT ? left.getColumns().size() : right.getColumns().size(), null));
+                    tmp.set(lColIndex, entry.getValue().get(rColIndex));
                     tmp.addAll(entry.getValue());
                     df.append(tmp);
                 }
             }
         }
 
+        df.rename(String.format("%s_%s", joinKey, "left"), joinKey).drop(String.format("%s_%s", joinKey, "right"));
+
         return df;
     }
 
-    public static <V> DataFrame<V> joinOn(final DataFrame<V> left, final DataFrame<V> right, final JoinType how, final Integer ... cols) {
-        return join(left, right, how, new KeyFunction<V>() {
+
+    public static <V> DataFrame<V> joinOn(final DataFrame<V> left, final DataFrame<V> right, final JoinType how, final String joinKey) {
+        return join(left, right, how, joinKey, new KeyFunction<V>() {
             @Override
-            public Object apply(final List<V> value) {
-                final List<V> key = new ArrayList<>(cols.length);
-                for (final int col : cols) {
-                    key.add(value.get(col));
+            public Object apply(final List<V> value, final int side) {
+                final List<V> key = new ArrayList<>();
+                Integer colIndex = null;
+                if (side == 0) {
+                    colIndex = left.getColIndex(joinKey);
                 }
+                else {
+                    colIndex = right.getColIndex(joinKey);
+                }
+
+                if (colIndex == null) {
+                    throw new IllegalArgumentException("joinKey不存在: " + joinKey);
+                }
+                key.add(value.get(colIndex));
+
                 return Collections.unmodifiableList(key);
             }
         });

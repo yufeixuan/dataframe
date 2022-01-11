@@ -240,8 +240,12 @@ public class DataFrame<V> implements Iterable<List<V>> {
     public DataFrame<V> add(String col) {
         columns.add(col);
         index.put(col, columns.size() - 1);
-        List<V> colArr = new LinkedList<>();
-        data.add(colArr);
+        int len = data.length();
+
+        for (int c = data.size(); c < columns.size(); c++) {
+            data.add(new ArrayList<V>(len + 1));
+        }
+
         return this;
     }
 
@@ -480,7 +484,7 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * A function that is applied to objects (rows or values)
      * in a {@linkplain DataFrame data frame}.
      *
-     * <p>Implementors define {@link #apply(Object)} to perform
+     * <p>Implementors define {@link #apply(Object, int)} to perform
      * the desired calculation and return the result.</p>
      *
      * @param <I> the type of the input values
@@ -494,14 +498,14 @@ public class DataFrame<V> implements Iterable<List<V>> {
          * @param value the input value
          * @return the result
          */
-        O apply(I value);
+        O apply(I value, int side);
     }
 
     /**
      * A function that converts {@linkplain DataFrame data frame}
      * rows to index or group keys.
      *
-     * <p>Implementors define {@link #apply(Object)} to accept
+     * <p>Implementors define {@link #apply(Object, int)} to accept
      * a data frame row as input and return a key value.</p>
      *
      * @param <I> the type of the input values
@@ -518,9 +522,9 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * join the join type
      * cols the indices of the columns to use as the join key
      */
-    public final DataFrame<V> joinOn(final DataFrame<V> other, final JoinType join, final Integer ... cols) {
-        return Combining.joinOn(this, other, join, cols);
-    }
+//    public final DataFrame<V> joinOn(final DataFrame<V> other, final JoinType join, final Integer ... cols) {
+//        return Combining.joinOn(this, other, join, cols);
+//    }
 
     /**
      * Return a new data frame created by performing a join of this
@@ -532,8 +536,9 @@ public class DataFrame<V> implements Iterable<List<V>> {
      * colKey the names of the columns to use as the join key
      * the result of the join operation as a new data frame
      */
-    public final DataFrame<V> joinOn(final DataFrame<V> right, final JoinType join, final Object ... colKey) {
-        return joinOn(right, join, indices(colKey));
+    public final DataFrame<V> joinOn(final DataFrame<V> right, final JoinType join, final String colKey) {
+//        return joinOn(right, join, indices(colKey));
+        return Combining.joinOn(this, right, join, colKey);
     }
 
 
@@ -562,7 +567,11 @@ public class DataFrame<V> implements Iterable<List<V>> {
         final int size = names.size();
         final Integer[] indices = new Integer[size];
         for (int i = 0; i < size; i++) {
-            indices[i] = getColIndex(names.get(i));
+            Integer colIndex = getColIndex(names.get(i));
+            if (colIndex == null) {
+                throw new IllegalArgumentException("column name: '" + names.get(i) +  "' is not exist");
+            }
+            indices[i] = colIndex;
         }
         return indices;
     }
