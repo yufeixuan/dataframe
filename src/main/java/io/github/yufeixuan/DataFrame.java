@@ -6,7 +6,6 @@ import io.github.yufeixuan.impl.Sorting;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @Author: Luoxuan
@@ -247,6 +246,22 @@ public class DataFrame<V> implements Iterable<List<V>> {
         }
 
         return this;
+    }
+
+    @Override
+    public DataFrame<V> clone() {
+        LinkedList<Object> columns = getColumns();
+        LinkedList<Object> newCols = new LinkedList<>();
+        columns.forEach(col -> {
+            newCols.add(col);
+        });
+
+        DataFrame<V> df = new DataFrame<>(newCols);
+        for (int i = 0; i < length(); i++) {
+            df.append(this.row(i));
+        }
+
+        return df;
     }
 
     /**
