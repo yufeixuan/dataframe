@@ -48,6 +48,14 @@ public class DataFrame<V> implements Iterable<List<V>> {
         return index.size();
     }
 
+    public Map<Object, Integer> getIndex() {
+        return index;
+    }
+
+    public List<List<V>> getBlocks() {
+        return data.getBlocks();
+    }
+
     private void addColIndex(final Object name, final Integer value) {
         if (index.put(name, value) != null) {
             throw new IllegalArgumentException("column name: '" + name +  "' is exist");

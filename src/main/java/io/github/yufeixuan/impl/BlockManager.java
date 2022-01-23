@@ -85,4 +85,8 @@ public class BlockManager<V> {
             blocks.remove(colIndex);
         }
     }
+
+    public List<List<V>> getBlocks() {
+        return blocks;
+    }
 }

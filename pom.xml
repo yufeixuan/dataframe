@@ -6,7 +6,7 @@
 
   <groupId>io.github.yufeixuan</groupId>
   <artifactId>DataFrame</artifactId>
-  <version>1.0.10</version>
+  <version>1.0.11</version>
   <packaging>jar</packaging>
 
   <name>DataFrame</name>
@@ -19,6 +19,7 @@
     6. 优化joinOn
     7. 优化add方法
     8. 增加clone方法
+    9. 增加getIndex、getBlocks方法
   </description>
 
   <licenses>
