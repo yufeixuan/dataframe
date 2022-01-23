@@ -582,6 +582,16 @@ public class DataFrame<V> implements Iterable<List<V>> {
         return Sorting.sort(this, sortCols);
     }
 
+    public DataFrame<V> sortBy(String col) {
+
+//        final String str = col instanceof String ? String.class.cast(col) : "";
+//        final SortDirection dir = str.startsWith("-") ? SortDirection.DESCENDING : SortDirection.ASCENDING;
+//        final int colIndex = this.getColIndex(str.startsWith("-") ? str.substring(1) : col);
+
+
+        return Sorting.sort(this, col);
+    }
+
     private Integer[] indices(final Object[] names) {
         return indices(Arrays.asList(names));
     }

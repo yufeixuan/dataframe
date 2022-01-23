@@ -71,4 +71,9 @@ public class Sorting {
 
         return sorted;
     }
+
+    public static <V> DataFrame<V> sort(DataFrame lists, String col) {
+
+        return null;
+    }
 }
