@@ -89,4 +89,12 @@ public class BlockManager<V> {
     public List<List<V>> getBlocks() {
         return blocks;
     }
+
+    public void setBlocks(ArrayList blocksArray){
+        if (blocksArray != null && blocksArray.size() > 0) {
+            for (int i = 0; i < blocksArray.size(); i++) {
+                blocks.add((List<V>) blocksArray.get(i));
+            }
+        }
+    }
 }

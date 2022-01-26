@@ -56,6 +56,10 @@ public class DataFrame<V> implements Iterable<List<V>> {
         return data.getBlocks();
     }
 
+    public void setBlocks(ArrayList blocksArray) {
+        data.setBlocks(blocksArray);
+    }
+
     private void addColIndex(final Object name, final Integer value) {
         if (index.put(name, value) != null) {
             throw new IllegalArgumentException("column name: '" + name +  "' is exist");
@@ -582,15 +586,6 @@ public class DataFrame<V> implements Iterable<List<V>> {
         return Sorting.sort(this, sortCols);
     }
 
-    public DataFrame<V> sortBy(String col) {
-
-//        final String str = col instanceof String ? String.class.cast(col) : "";
-//        final SortDirection dir = str.startsWith("-") ? SortDirection.DESCENDING : SortDirection.ASCENDING;
-//        final int colIndex = this.getColIndex(str.startsWith("-") ? str.substring(1) : col);
-
-
-        return Sorting.sort(this, col);
-    }
 
     private Integer[] indices(final Object[] names) {
         return indices(Arrays.asList(names));
